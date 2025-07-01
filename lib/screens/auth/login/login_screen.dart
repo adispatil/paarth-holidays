@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../core/extensions/text_style_extension.dart';
 import 'login_controller.dart';
+import '../forgot_password/forgot_password_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   LoginScreen({super.key});
@@ -143,7 +144,7 @@ class LoginScreen extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {},
+                    onPressed: () => Get.to(() => const ForgotPasswordScreen()),
                     child: Text(
                       'Forgot Password?',
                       style: TextStyleExtension.bodyMedium.withColor(

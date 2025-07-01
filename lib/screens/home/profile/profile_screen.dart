@@ -4,6 +4,7 @@ import '../../../models/profile_model.dart';
 import 'widgets/profile_info_card.dart';
 import 'profile_controller.dart';
 import '../../../widgets/common/loader_dialog.dart';
+import 'change_password_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -106,6 +107,45 @@ class ProfileScreen extends StatelessWidget {
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     color: theme.colorScheme.onPrimary,
                                     fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: theme.primaryColor.withOpacity(0.3),
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: ElevatedButton(
+                                  onPressed: () => Get.to(() => const ChangePasswordScreen()),
+                                  style: ElevatedButton.styleFrom(
+                                    minimumSize: const Size(double.infinity, 50),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    backgroundColor: theme.primaryColor.withOpacity(0.1),
+                                    foregroundColor: theme.primaryColor,
+                                    elevation: 0,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.lock_outline,
+                                        color: theme.primaryColor,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Change Password',
+                                        style: theme.textTheme.titleMedium?.copyWith(
+                                          color: theme.primaryColor,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),

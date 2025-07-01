@@ -388,4 +388,104 @@ class ApiService {
       throw Exception('Failed to fetch offers: $e');
     }
   }
+
+  /// Changes the user's password.
+  ///
+  /// Sends a POST request to the /change-password endpoint with required headers.
+  /// Returns a [Map<String, dynamic>] containing the response data on success.
+  /// Throws an [Exception] if the request fails or there is a network/server error.
+  Future<Map<String, dynamic>> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    await _ensureInitialized();
+    final url = Uri.parse('$baseUrl/change-password');
+    try {
+      final response = await http
+          .post(
+            url,
+            headers: _getHeaders(),
+            body: jsonEncode({
+              'old_password': oldPassword,
+              'new_password': newPassword,
+            }),
+          )
+          .timeout(
+            const Duration(seconds: 50),
+            onTimeout: () {
+              throw Exception(
+                'Connection timeout. Please check your internet connection.',
+              );
+            },
+          );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        if (data['status'] == true) {
+          return data;
+        } else {
+          throw Exception(data['message'] ?? 'Failed to change password');
+        }
+      } else {
+        throw Exception('Server returned status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e.toString().contains('SocketException')) {
+        throw Exception(
+          'Unable to connect to server. Please check your internet connection.',
+        );
+      }
+      throw Exception('Failed to change password: $e');
+    }
+  }
+
+  /// Sends a password reset email to the provided email address.
+  ///
+  /// Sends a POST request to the /forgot-password endpoint.
+  /// Returns a [Map<String, dynamic>] containing the response data on success.
+  /// Throws an [Exception] if the request fails or there is a network/server error.
+  Future<Map<String, dynamic>> forgotPassword({
+    required String email,
+  }) async {
+    final url = Uri.parse('$baseUrl/forgot-password');
+    try {
+      final response = await http
+          .post(
+            url,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({
+              'email': email,
+            }),
+          )
+          .timeout(
+            const Duration(seconds: 50),
+            onTimeout: () {
+              throw Exception(
+                'Connection timeout. Please check your internet connection.',
+              );
+            },
+          );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        if (data['status'] == true) {
+          return data;
+        } else {
+          throw Exception(data['message'] ?? 'Failed to send password reset email');
+        }
+      } else {
+        throw Exception('Server returned status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e.toString().contains('SocketException')) {
+        throw Exception(
+          'Unable to connect to server. Please check your internet connection.',
+        );
+      }
+      throw Exception('Failed to send password reset email: $e');
+    }
+  }
 }

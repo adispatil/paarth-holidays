@@ -1,5 +1,5 @@
 PODS:
-  - easy_pdf_viewer (1.0.8):
+  - easy_pdf_viewer (1.0.7):
     - Flutter
   - Flutter (1.0.0)
   - flutter_contacts (0.0.1):
@@ -42,7 +42,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/sqflite_darwin/darwin"
 
 SPEC CHECKSUMS:
-  easy_pdf_viewer: 92a716add4c1703a35e1734979caa7c689dcddd5
+  easy_pdf_viewer: 87ea0602930e7b1c8eecd36b362604254d2ad018
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_contacts: edb1c5ce76aa433e20e6cb14c615f4c0b66e0983
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46

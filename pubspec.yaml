@@ -19,7 +19,10 @@ dependencies:
   http: ^1.1.0
   font_awesome_flutter: ^10.8.0
   flutter_html: ^3.0.0-beta.2
-  easy_pdf_viewer: ^1.0.8
+  easy_pdf_viewer:
+    git:
+      url: https://github.com/ShankarKakumani/pdf_viewer.git
+      ref: main
   intl: ^0.18.0
   flutter_contacts: ^1.1.9+2
   permission_handler: ^12.0.0+1

@@ -35,8 +35,7 @@ class BookingCard extends StatelessWidget {
   }
 
   void _navigateToDetails(BuildContext context) {
-    //Get.to(() => BookingDetailsScreen(enquiryId: enquiry.uniqueEnquiryId));
-    Get.to(() => BookingDetailsScreen(enquiryId: "8"));
+    Get.to(() => BookingDetailsScreen(enquiryId: enquiry.enquiryId));
   }
 
   @override
