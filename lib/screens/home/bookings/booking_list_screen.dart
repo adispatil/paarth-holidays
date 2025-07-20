@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../widgets/common/app_bar.dart';
 
 import 'booking_list_controller.dart';
 import 'widgets/enquiry_card.dart';
@@ -13,7 +14,10 @@ class BookingListScreen extends GetView<BookingListController> {
     Get.put(BookingListController()).fetchBookings();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Bookings'), centerTitle: true),
+      appBar: const CommonAppBar(
+        title: 'My Bookings',
+        showBackButton: false,
+      ),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());

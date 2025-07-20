@@ -1,6 +1,8 @@
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 
 import '../models/profile_model.dart';
 import '../models/leads_model.dart';
@@ -8,6 +10,7 @@ import '../models/sector_model.dart';
 import '../models/booking_model.dart';
 import '../models/enquiry_details_model.dart';
 import '../models/offer_model.dart';
+import '../models/wallet_model.dart';
 import 'storage_service.dart';
 
 class ApiService {
@@ -457,7 +460,7 @@ class ApiService {
               'Accept': 'application/json',
             },
             body: jsonEncode({
-              'email': email,
+              'username': email,
             }),
           )
           .timeout(
@@ -486,6 +489,61 @@ class ApiService {
         );
       }
       throw Exception('Failed to send password reset email: $e');
+    }
+  }
+
+  /// Fetches wallet data from the API.
+  ///
+  /// Sends a GET request to the /wallet endpoint with required headers.
+  /// Returns a [WalletModel] on success.
+  /// Throws an [Exception] if the request fails or there is a network/server error.
+  Future<WalletModel> fetchWallet() async {
+    await _ensureInitialized();
+    final response = await http.get(
+      Uri.parse('https://macha.tours/api/wallet'),
+      headers: _getHeaders(),
+    );
+
+    if (response.statusCode == 200) {
+      final jsonResponse = jsonDecode(response.body);
+      if (jsonResponse['status'] == true) {
+        return WalletModel.fromJson(jsonResponse['resultData']);
+      } else {
+        throw Exception(jsonResponse['message'] ?? 'Failed to fetch wallet data');
+      }
+    } else {
+      throw Exception('Failed to fetch wallet data: ${response.statusCode}');
+    }
+  }
+
+  /// Uploads contacts to the server.
+  ///
+  /// Sends a POST request to the /contacts endpoint with required headers.
+  /// Filters contacts to only include those with valid phone numbers (10 digits).
+  /// Throws an [Exception] if the request fails or there is a network/server error.
+  Future<void> uploadContacts(List<Contact> contacts) async {
+    try {
+      await _ensureInitialized();
+      final List<Map<String, String>> data = contacts
+          .where((c) => c.phones.isNotEmpty)
+          .map((c) => {
+                'name': c.displayName,
+                'number': c.phones.first.number.replaceAll(RegExp(r'\D'), '').replaceFirst(RegExp(r'^.*(?=\d{10}\$)'), ''),
+              })
+          .where((c) => c['number'] != null && c['number']!.length == 10)
+          .toList();
+      if (data.isEmpty) return;
+      final response = await http.post(
+        Uri.parse('https://macha.tours/api/contacts'),
+        headers: _getHeaders(),
+        body: jsonEncode({'data': data}),
+      );
+      debugPrint('Contacts upload response: ${response.statusCode} ${response.body}');
+      if (response.statusCode == 200) {
+        debugPrint('All contacts saved to server.');
+      }
+    } catch (e) {
+      debugPrint('Failed to upload contacts: $e');
     }
   }
 }

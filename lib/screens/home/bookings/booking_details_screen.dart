@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../widgets/common/app_bar.dart';
+
 import '../../../../controllers/enquiry_details_controller.dart';
 import '../../../../models/enquiry_details_model.dart';
 import '../../../../widgets/vehicles_list.dart';
@@ -22,9 +24,8 @@ class BookingDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Booking Details'),
-        elevation: 0,
+      appBar: const CommonAppBar(
+        title: 'Booking Details',
       ),
       body: Obx(() {
         if (controller.isLoading.value) {

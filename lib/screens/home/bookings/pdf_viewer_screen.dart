@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:easy_pdf_viewer/easy_pdf_viewer.dart';
+import '../../../widgets/common/app_bar.dart';
 
 class PDFViewerScreen extends StatefulWidget {
   final String pdfUrl;
@@ -45,7 +46,9 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title), elevation: 0),
+      appBar: CommonAppBar(
+        title: widget.title,
+      ),
       body:
           isLoading
               ? const Center(child: CircularProgressIndicator())

@@ -22,7 +22,12 @@ class SplashScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/images/logo.png', width: 200, height: 100),
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 100.0),
+                  child: Image.asset('assets/images/paarth_logo_3.png', width: 300, height: 300,),
+                ),
+              ),
             ],
           ),
         ),

@@ -4,6 +4,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/sector_model.dart';
 import '../services/api_service.dart';
+import '../screens/home/leads/contact_picker_screen.dart';
 
 class CreateLeadController extends GetxController {
   final ApiService _apiService = ApiService();
@@ -31,7 +32,13 @@ class CreateLeadController extends GetxController {
   }
 
   Future<bool> _requestContactPermission() async {
+    final currentStatus = await Permission.contacts.status;
+    print('Current contacts permission status: ' + currentStatus.toString());
+    if (currentStatus.isGranted) {
+      return true;
+    }
     final status = await Permission.contacts.request();
+    print('Contacts permission status after request: ' + status.toString());
     if (status.isGranted) {
       return true;
     } else if (status.isPermanentlyDenied) {
@@ -76,75 +83,28 @@ class CreateLeadController extends GetxController {
       final hasPermission = await _requestContactPermission();
       if (!hasPermission) return;
 
-      isLoading.value = true;
-      // Get all contacts with properties
-      final List<Contact> allContacts = await FlutterContacts.getContacts(
-        withProperties: true,
-        withPhoto: true,
-      );
-      
-      contacts.value = allContacts;
-      
-      // Show contact picker dialog
-      final Contact? selectedContact = await Get.dialog<Contact>(
-        Dialog(
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Select Contact',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  height: 300,
-                  child: ListView.builder(
-                    itemCount: contacts.length,
-                    itemBuilder: (context, index) {
-                      final contact = contacts[index];
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Theme.of(context).primaryColor,
-                          child: Text(
-                            contact.displayName.isNotEmpty 
-                                ? contact.displayName[0].toUpperCase()
-                                : '?',
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        title: Text(contact.displayName),
-                        subtitle: contact.phones.isNotEmpty 
-                            ? Text(contact.phones.first.number)
-                            : null,
-                        onTap: () => Get.back(result: contact),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
+      // Navigate to the new ContactPickerScreen and wait for result
+      final Contact? selectedContact = await Get.to(() => const ContactPickerScreen());
 
       if (selectedContact != null) {
-        // Get the first phone number if available
-        final phoneNumber = selectedContact.phones.isNotEmpty 
+        // Get the first phone number if available and sanitize to last 10 digits
+        String phoneNumber = selectedContact.phones.isNotEmpty 
             ? selectedContact.phones.first.number 
             : '';
+        // Remove all non-digit characters
+        phoneNumber = phoneNumber.replaceAll(RegExp(r'\D'), '');
+        // Use only the last 10 digits if available
+        if (phoneNumber.length > 10) {
+          phoneNumber = phoneNumber.substring(phoneNumber.length - 10);
+        }
         contactController.text = phoneNumber;
-        
         // If name is empty, set it from contact
         if (nameController.text.isEmpty) {
           nameController.text = selectedContact.displayName;
         }
       }
     } catch (e) {
+      print(e);
       Get.snackbar(
         'Error',
         'Failed to pick contact: $e',
@@ -152,8 +112,6 @@ class CreateLeadController extends GetxController {
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
-    } finally {
-      isLoading.value = false;
     }
   }
 

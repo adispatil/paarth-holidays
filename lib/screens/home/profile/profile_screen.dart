@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../widgets/common/app_bar.dart';
 import '../../../models/profile_model.dart';
 import 'widgets/profile_info_card.dart';
 import 'profile_controller.dart';
@@ -29,10 +30,9 @@ class ProfileScreen extends StatelessWidget {
       });
 
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Profile'),
-          centerTitle: true,
-          elevation: 0,
+        appBar: const CommonAppBar(
+          title: 'Profile',
+          showBackButton: false,
         ),
         body: controller.errorMessage.isNotEmpty
             ? Center(child: Text(controller.errorMessage.value))

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import '../../../widgets/common/app_bar.dart';
 
 import '../../../controllers/create_lead_controller.dart';
 
@@ -13,9 +14,8 @@ class CreateLeadScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Create Lead'),
-        elevation: 0,
+      appBar: const CommonAppBar(
+        title: 'Create Lead',
       ),
       body: Obx(() => controller.isLoading.value
           ? const Center(child: CircularProgressIndicator())

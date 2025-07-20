@@ -29,48 +29,42 @@ class OnboardingScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Previous Button
-                  Obx(
-                    () => Visibility(
-                      visible: controller.selectedPageIndex.value > 0,
-                      maintainSize: true,
-                      maintainAnimation: true,
-                      maintainState: true,
-                      child: GestureDetector(
-                        onTap: () {
-                          controller.pageController.previousPage(
-                            duration: 300.milliseconds,
-                            curve: Curves.ease,
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(30),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                offset: const Offset(0, 4),
-                                blurRadius: 8,
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.arrow_back,
-                                color: Color(0xFFFF8800),
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Previous',
-                                style: TextStyleExtension.buttonSecondary,
-                              ),
-                            ],
+                  Flexible(
+                    flex: 2,
+                    child: Obx(
+                      () => Visibility(
+                        visible: controller.selectedPageIndex.value > 0,
+                        maintainSize: true,
+                        maintainAnimation: true,
+                        maintainState: true,
+                        child: GestureDetector(
+                          onTap: () {
+                            controller.pageController.previousPage(
+                              duration: 300.milliseconds,
+                              curve: Curves.ease,
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  offset: const Offset(0, 4),
+                                  blurRadius: 8,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.arrow_back,
+                              color: Color(0xFFFF8800),
+                              size: 28,
+                            ),
                           ),
                         ),
                       ),
@@ -78,65 +72,66 @@ class OnboardingScreen extends StatelessWidget {
                   ),
 
                   // Page Indicators
-                  Row(
-                    children: List.generate(
-                      3,
-                      (index) => Obx(() {
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          margin: const EdgeInsets.only(right: 8),
-                          height: 8,
-                          width:
-                              controller.selectedPageIndex.value == index
-                                  ? 24
-                                  : 8,
-                          decoration: BoxDecoration(
-                            color:
-                                controller.selectedPageIndex.value == index
-                                    ? const Color(0xFFFF8800)
-                                    : const Color(0xFFD8D8D8),
-                            borderRadius: BorderRadius.circular(12),
+                  Expanded(
+                    flex: 3,
+                    child: Center(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(
+                            3,
+                            (index) => Obx(() {
+                              return AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                margin: const EdgeInsets.only(right: 8),
+                                height: 8,
+                                width: controller.selectedPageIndex.value == index ? 24 : 8,
+                                decoration: BoxDecoration(
+                                  color: controller.selectedPageIndex.value == index
+                                      ? const Color(0xFFFF8800)
+                                      : const Color(0xFFD8D8D8),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              );
+                            }),
                           ),
-                        );
-                      }),
+                        ),
+                      ),
                     ),
                   ),
 
                   // Next/Get Started Button
-                  Obx(
-                    () => GestureDetector(
-                      onTap: controller.forwardAction,
-                      child: Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFF8800),
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(
-                                0xFFFF8800,
-                              ).withValues(alpha: 0.3),
-                              offset: const Offset(0, 4),
-                              blurRadius: 8,
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              controller.isLastPage ? 'Get Started' : 'Next',
-                              style: TextStyleExtension.buttonPrimary,
-                            ),
-                            if (!controller.isLastPage) ...[
-                              const SizedBox(width: 8),
-                              const Icon(
-                                Icons.arrow_forward,
-                                color: Colors.white,
-                                size: 20,
+                  Flexible(
+                    flex: 2,
+                    child: Obx(
+                      () => GestureDetector(
+                        onTap: controller.forwardAction,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFF8800),
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFFFF8800,
+                                ).withValues(alpha: 0.3),
+                                offset: const Offset(0, 4),
+                                blurRadius: 8,
                               ),
                             ],
-                          ],
+                          ),
+                          child: controller.isLastPage
+                              ? Text(
+                                  'Get Started',
+                                  style: TextStyleExtension.buttonPrimary,
+                                )
+                              : const Icon(
+                                  Icons.arrow_forward,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
                         ),
                       ),
                     ),
