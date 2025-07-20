@@ -1,16 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:paarth_holidays/screens/auth/signup/signup_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../home/home_screen.dart';
 import '../../../services/api_service.dart';
 import '../../../services/storage_service.dart';
+import 'dart:async';
 
 class LoginController extends GetxController {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final RxBool isPasswordVisible = false.obs;
+  final TextEditingController mobileController = TextEditingController();
+  final List<TextEditingController> otpControllers = List.generate(
+    6,
+    (index) => TextEditingController(),
+  );
   final RxBool isLoading = false.obs;
+  final RxBool isOtpSent = false.obs;
+  final RxInt resendSecondsLeft = 0.obs;
+  Timer? _resendTimer;
+
+  String get resendTimerText {
+    final int min = resendSecondsLeft.value ~/ 60;
+    final int sec = resendSecondsLeft.value % 60;
+    return '${min.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}' ;
+  }
+
+  void _startResendTimer() {
+    resendSecondsLeft.value = 120;
+    _resendTimer?.cancel();
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (resendSecondsLeft.value > 0) {
+        resendSecondsLeft.value--;
+      } else {
+        _resendTimer?.cancel();
+      }
+    });
+  }
 
   late final ApiService _apiService;
   late final StorageService _storageService;
@@ -23,15 +46,20 @@ class LoginController extends GetxController {
     _storageService = StorageService(prefs);
   }
 
-  void togglePasswordVisibility() {
-    isPasswordVisible.value = !isPasswordVisible.value;
-  }
-
-  Future<void> login() async {
-    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+  Future<void> sendOtp() async {
+    if (mobileController.text.isEmpty) {
       Get.snackbar(
         'Error',
-        'Please enter both username and password',
+        'Please enter your mobile number',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    if (mobileController.text.length != 10) {
+      Get.snackbar(
+        'Error',
+        'Please enter a valid 10-digit mobile number',
         snackPosition: SnackPosition.BOTTOM,
       );
       return;
@@ -39,28 +67,18 @@ class LoginController extends GetxController {
 
     try {
       isLoading.value = true;
-      final response = await _apiService.login(
-        emailController.text,
-        passwordController.text,
+      // TODO: Implement send OTP API call
+      // final response = await _apiService.sendOtp(mobileController.text);
+      
+      isOtpSent.value = true;
+      _startResendTimer();
+      Get.snackbar(
+        'Success',
+        'OTP sent to your mobile number',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green[100],
+        colorText: Colors.green[900],
       );
-
-      if (response['status'] == true) {
-        final token = response['resultData']['token'];
-        await _storageService.saveToken(token);
-
-        Get.offAll(() => HomeScreen());
-        Get.snackbar(
-          'Success',
-          response['message'] ?? 'Login successful',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-      } else {
-        Get.snackbar(
-          'Error',
-          response['message'] ?? 'Login failed',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-      }
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -75,18 +93,90 @@ class LoginController extends GetxController {
     }
   }
 
-  void loginWithGoogle() {
-    // Implement Google login logic
+  Future<void> verifyOtp() async {
+    if (mobileController.text.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Please enter your mobile number',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    // Get OTP from all 6 text fields
+    String otp = otpControllers.map((controller) => controller.text).join('');
+    
+    if (otp.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Please enter the OTP',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    if (otp.length != 6) {
+      Get.snackbar(
+        'Error',
+        'Please enter a valid 6-digit OTP',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+      // TODO: Implement verify OTP API call
+      // final response = await _apiService.verifyOtp(mobileController.text, otp);
+      
+      // For now, simulate successful login
+      Get.offAll(() => HomeScreen());
+      Get.snackbar(
+        'Success',
+        'Login successful',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green[100],
+        colorText: Colors.green[900],
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        e.toString().replaceAll('Exception: ', ''),
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 3),
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[900],
+      );
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  void goToSignUp() {
-    Get.to(() => SignupScreen());
+  void resendOtp() {
+    if (mobileController.text.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Please enter your mobile number first',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+    
+    sendOtp();
+    _startResendTimer();
   }
+
+
+
+
 
   @override
   void onClose() {
-    emailController.dispose();
-    passwordController.dispose();
+    _resendTimer?.cancel();
+    mobileController.dispose();
+    for (var controller in otpControllers) {
+      controller.dispose();
+    }
     super.onClose();
   }
 }
