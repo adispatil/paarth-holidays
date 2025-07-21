@@ -43,6 +43,7 @@ class ContactPickerController extends GetxController {
   void selectContact(Contact contact) {
     final key = contact.displayName + (contact.phones.isNotEmpty ? contact.phones.first.number : '');
     selectedContactKey.value = key;
+    selectedContact.value = contact;
   }
 
   void confirmSelection() {

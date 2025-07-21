@@ -137,7 +137,7 @@ class LoginController extends GetxController {
       await _storageService.saveToken(result['auth_token']);
       await _storageService.saveIsProfileCompleted(result['is_profile_completed'] == true);
       if (result['is_profile_completed'] == true) {
-        Get.off(() => AddProfileDetailsScreen(mobileNumber: mobileController.text),);
+        Get.offAll(() => HomeScreen());
         Get.snackbar(
           'Success',
           'Login successful',
