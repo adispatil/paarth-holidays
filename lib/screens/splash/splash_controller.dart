@@ -5,6 +5,7 @@ import '../../services/storage_service.dart';
 import '../auth/login/login_screen.dart';
 import '../home/home_screen.dart';
 import '../onboarding/onboarding_screen.dart';
+import '../auth/login/add_profile_details_screen.dart';
 
 class SplashController extends GetxController {
   late final StorageService _storageService;
@@ -24,10 +25,16 @@ class SplashController extends GetxController {
   void checkAuthAndNavigate() {
     final token = _storageService.getToken();
     final isFirstTime = _storageService.getIsFirstTime() ?? true;
+    final isProfileCompleted = _storageService.getIsProfileCompleted();
 
     if (token != null && token.isNotEmpty) {
-      // Token exists, navigate to home screen
-      Get.offAll(() => HomeScreen());
+      if (!isProfileCompleted) {
+        // Token exists but profile not completed
+        Get.offAll(() => AddProfileDetailsScreen(mobileNumber: ''));
+      } else {
+        // Token exists, navigate to home screen
+        Get.offAll(() => HomeScreen());
+      }
     } else if (isFirstTime) {
       // First time user, navigate to onboarding
       Get.offAll(() => OnboardingScreen());

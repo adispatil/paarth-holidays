@@ -37,21 +37,22 @@ class ApiService {
     };
   }
 
-  /// Logs in a user with the provided [username] and [password].
+  /// Sends an OTP to the given mobile number for sign-in.
   ///
-  /// Sends a POST request to the /signin endpoint.
-  /// Returns a [Map<String, dynamic>] containing the response data on success.
-  /// Throws an [Exception] if the login fails or there is a network/server error.
-  Future<Map<String, dynamic>> login(String username, String password) async {
+  /// Sends a POST request to the /otp-signin endpoint.
+  /// Returns the token on success.
+  /// Throws an [Exception] if the request fails or there is a network/server error.
+  Future<String> otpSignIn(String mobileNumber) async {
+    final url = Uri.parse('$baseUrl/otp-signin');
     try {
       final response = await http
           .post(
-            Uri.parse('$baseUrl/signin'),
+            url,
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
             },
-            body: jsonEncode({'username': username, 'password': password}),
+            body: jsonEncode({'mobile_number': mobileNumber}),
           )
           .timeout(
             const Duration(seconds: 50),
@@ -63,7 +64,12 @@ class ApiService {
           );
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        if (data['status'] == true && data['data'] != null && data['data']['token'] != null) {
+          return data['data']['token'];
+        } else {
+          throw Exception(data['message'] ?? 'Failed to send OTP');
+        }
       } else {
         throw Exception('Server returned status code: ${response.statusCode}');
       }
@@ -73,7 +79,7 @@ class ApiService {
           'Unable to connect to server. Please check your internet connection.',
         );
       }
-      throw Exception('Failed to login: $e');
+      throw Exception('Failed to send OTP: $e');
     }
   }
 
@@ -544,6 +550,103 @@ class ApiService {
       }
     } catch (e) {
       debugPrint('Failed to upload contacts: $e');
+    }
+  }
+
+  /// Validates the OTP using the provided token and otp.
+  ///
+  /// Sends a POST request to the /validate-otp endpoint.
+  /// Returns a map with 'auth_token' and 'is_profile_completed' on success.
+  /// Throws an [Exception] if the request fails or there is a network/server error.
+  Future<Map<String, dynamic>> validateOtp({required String token, required String otp}) async {
+    final url = Uri.parse('$baseUrl/validate-otp');
+    try {
+      final response = await http
+          .post(
+            url,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({'token': token, 'otp': otp}),
+          )
+          .timeout(
+            const Duration(seconds: 50),
+            onTimeout: () {
+              throw Exception(
+                'Connection timeout. Please check your internet connection.',
+              );
+            },
+          );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        if (data['status'] == true && data['data'] != null && data['data']['auth_token'] != null) {
+          return {
+            'auth_token': data['data']['auth_token'],
+            'is_profile_completed': data['data']['is_profile_completed'],
+          };
+        } else {
+          throw Exception(data['message'] ?? 'Failed to validate OTP');
+        }
+      } else {
+        throw Exception('Server returned status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e.toString().contains('SocketException')) {
+        throw Exception(
+          'Unable to connect to server. Please check your internet connection.',
+        );
+      }
+      throw Exception('Failed to validate OTP: $e');
+    }
+  }
+
+  /// Updates the user profile with name, gender, and email.
+  ///
+  /// Sends a POST request to the /update-profile endpoint.
+  /// Returns the message on success.
+  /// Throws an [Exception] if the request fails or there is a network/server error.
+  Future<String> updateProfile({required String name, required String gender, required String email}) async {
+    final url = Uri.parse('$baseUrl/update-profile');
+    await _ensureInitialized();
+    try {
+      final response = await http
+          .post(
+            url,
+            headers: _getHeaders(),
+            body: jsonEncode({
+              'name': name,
+              'gender': gender,
+              'email': email,
+            }),
+          )
+          .timeout(
+            const Duration(seconds: 50),
+            onTimeout: () {
+              throw Exception(
+                'Connection timeout. Please check your internet connection.',
+              );
+            },
+          );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        if (data['status'] == true) {
+          return data['message'] ?? 'Profile updated successfully!';
+        } else {
+          throw Exception(data['message'] ?? 'Failed to update profile');
+        }
+      } else {
+        throw Exception('Server returned status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e.toString().contains('SocketException')) {
+        throw Exception(
+          'Unable to connect to server. Please check your internet connection.',
+        );
+      }
+      throw Exception('Failed to update profile: $e');
     }
   }
 }

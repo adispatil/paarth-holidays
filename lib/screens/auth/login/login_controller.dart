@@ -6,6 +6,8 @@ import '../../../services/api_service.dart';
 import '../../../services/storage_service.dart';
 import 'dart:async';
 
+import 'add_profile_details_screen.dart';
+
 class LoginController extends GetxController {
   final TextEditingController mobileController = TextEditingController();
   final List<TextEditingController> otpControllers = List.generate(
@@ -16,11 +18,12 @@ class LoginController extends GetxController {
   final RxBool isOtpSent = false.obs;
   final RxInt resendSecondsLeft = 0.obs;
   Timer? _resendTimer;
+  String? _otpToken; // Store the temporary token for OTP validation
 
   String get resendTimerText {
     final int min = resendSecondsLeft.value ~/ 60;
     final int sec = resendSecondsLeft.value % 60;
-    return '${min.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}' ;
+    return '${min.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
   }
 
   void _startResendTimer() {
@@ -67,9 +70,8 @@ class LoginController extends GetxController {
 
     try {
       isLoading.value = true;
-      // TODO: Implement send OTP API call
-      // final response = await _apiService.sendOtp(mobileController.text);
-      
+      final token = await _apiService.otpSignIn(mobileController.text);
+      _otpToken = token; // Store the token for OTP validation
       isOtpSent.value = true;
       _startResendTimer();
       Get.snackbar(
@@ -80,6 +82,7 @@ class LoginController extends GetxController {
         colorText: Colors.green[900],
       );
     } catch (e) {
+      isOtpSent.value = false;
       Get.snackbar(
         'Error',
         e.toString().replaceAll('Exception: ', ''),
@@ -103,9 +106,7 @@ class LoginController extends GetxController {
       return;
     }
 
-    // Get OTP from all 6 text fields
     String otp = otpControllers.map((controller) => controller.text).join('');
-    
     if (otp.isEmpty) {
       Get.snackbar(
         'Error',
@@ -114,7 +115,6 @@ class LoginController extends GetxController {
       );
       return;
     }
-
     if (otp.length != 6) {
       Get.snackbar(
         'Error',
@@ -123,21 +123,33 @@ class LoginController extends GetxController {
       );
       return;
     }
-
+    if (_otpToken == null) {
+      Get.snackbar(
+        'Error',
+        'OTP token missing. Please request OTP again.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
     try {
       isLoading.value = true;
-      // TODO: Implement verify OTP API call
-      // final response = await _apiService.verifyOtp(mobileController.text, otp);
-      
-      // For now, simulate successful login
-      Get.offAll(() => HomeScreen());
-      Get.snackbar(
-        'Success',
-        'Login successful',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green[100],
-        colorText: Colors.green[900],
-      );
+      final result = await _apiService.validateOtp(token: _otpToken!, otp: otp);
+      await _storageService.saveToken(result['auth_token']);
+      await _storageService.saveIsProfileCompleted(result['is_profile_completed'] == true);
+      if (result['is_profile_completed'] == true) {
+        Get.off(() => AddProfileDetailsScreen(mobileNumber: mobileController.text),);
+        Get.snackbar(
+          'Success',
+          'Login successful',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green[100],
+          colorText: Colors.green[900],
+        );
+      } else {
+        Get.offAll(
+          () => AddProfileDetailsScreen(mobileNumber: mobileController.text),
+        );
+      }
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -161,14 +173,10 @@ class LoginController extends GetxController {
       );
       return;
     }
-    
+
     sendOtp();
     _startResendTimer();
   }
-
-
-
-
 
   @override
   void onClose() {
